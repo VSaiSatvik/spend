@@ -151,6 +151,56 @@
   };
   var ORDER = ["gift","car","food","grocery","home"];
 
+  // A category you create picks up a vocabulary based on what you named it.
+  var CONCEPTS = {
+    clothing:{names:["cloth","clothes","clothing","apparel","fashion","wardrobe","outfit","garment","shopping"],
+      words:["shirt","tshirt","t shirt","pants","trousers","jeans","shorts","dress","skirt","kurta","kurti",
+        "saree","salwar","suit","blazer","jacket","hoodie","sweater","sweatshirt","socks","innerwear",
+        "underwear","pyjama","pyjamas","nightwear","shoes","sneakers","sandals","slippers","heels","boots",
+        "belt","cap","scarf","tie","handbag","backpack","wallet","sunglasses","jewellery","jewelry",
+        "earrings","necklace","bracelet","zara","uniqlo","namshi","shein","splash","max fashion",
+        "centrepoint","adidas","nike","puma","tailor","alteration"]},
+    health:{names:["health","medical","medicine","pharmacy","doctor","clinic","hospital","wellness"],
+      words:["pharmacy","medicine","medicines","tablets","doctor","clinic","hospital","dentist","dental",
+        "checkup","check up","consultation","xray","x ray","blood test","vaccine","physio","therapy",
+        "optician","spectacles","contact lens","supplements","vitamins","panadol","bandage","first aid",
+        "life pharmacy","aster","medcare","insurance card"]},
+    beauty:{names:["beauty","grooming","personal care","salon","spa","self care","barber"],
+      words:["haircut","hair cut","barber","salon","spa","massage","facial","manicure","pedicure","waxing",
+        "threading","shave","beard","makeup","skincare","moisturizer","sunscreen","perfume","deodorant",
+        "hair colour","hair color","nails"]},
+    fitness:{names:["fitness","gym","sport","sports","workout","exercise"],
+      words:["gym","membership","fitness","workout","protein","whey","trainer","yoga","pilates","crossfit",
+        "padel","football","cricket","badminton","swimming","running","cycling","whoop","fitness first"]},
+    pets:{names:["pet","pets","dog","cat","animal"],
+      words:["vet","veterinary","puppy","kitten","litter","pet food","kibble","leash","collar","pet shop",
+        "aquarium","fish food"]},
+    fun:{names:["entertainment","fun","leisure","movies","outing","hobby","hobbies","going out"],
+      words:["movie","movies","cinema","vox","novo","reel cinemas","concert","theatre","arcade","bowling",
+        "karting","museum","waterpark","theme park","global village","tickets","ticket","playstation",
+        "xbox","steam","game","games"]},
+    education:{names:["education","study","school","college","course","learning","books"],
+      words:["book","books","course","tuition","class","classes","exam","fees","stationery","notebook",
+        "printing","udemy","coursera","kindle","library","semester","university"]},
+    tech:{names:["tech","technology","gadget","gadgets","electronics","devices"],
+      words:["phone","iphone","laptop","macbook","charger","cable","adapter","headphones","airpods",
+        "earbuds","mouse","keyboard","monitor","powerbank","screen protector","sharaf dg","jumbo","emax",
+        "apple store"]},
+    kids:{names:["kid","kids","children","baby","child"],
+      words:["diapers","diaper","toys","stroller","formula","wipes","school bag"]},
+    charity:{names:["charity","donation","zakat","giving"],
+      words:["donation","charity","zakat","sadaqah","temple","mosque","church","offering"]}
+  };
+
+  function conceptFor(label){
+    var l = String(label).toLowerCase();
+    for(var k in CONCEPTS){
+      var names = CONCEPTS[k].names;
+      for(var i=0;i<names.length;i++){ if(l.indexOf(names[i]) > -1) return k; }
+    }
+    return null;
+  }
+
   function pad(n){ return String(n).length < 2 ? "0"+n : String(n); }
   function iso(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
   function mkey(y,m){ return y+"-"+pad(m+1); }
@@ -226,6 +276,15 @@
     var t = clean(text);
     for(var learned in db.rules){
       if(hasWord(t, learned) && hasCat(db.rules[learned])) return db.rules[learned];
+    }
+    // Categories you made yourself, matched on the vocabulary their name implies.
+    for(var c=0;c<db.cats.length;c++){
+      var cat = db.cats[c];
+      if(RULES[cat.id]) continue;
+      var k = conceptFor(cat.label);
+      if(!k) continue;
+      var cw = CONCEPTS[k].words;
+      for(var w=0;w<cw.length;w++){ if(hasWord(t, cw[w])) return cat.id; }
     }
     for(var i=0;i<ORDER.length;i++){
       if(!hasCat(ORDER[i])) continue;
@@ -370,7 +429,7 @@
     h += '<button class="chip" data-addcat="1" style="padding:7px 11px;font-size:13px">+ New category</button>';
     h += '</div>';
     if(state.adding){
-      h += '<div class="newrow"><input id="newname" placeholder="Name it, e.g. Pharmacy" value="'+esc(state.newName)+'" autocapitalize="words">'+
+      h += '<div class="newrow"><input id="newname" placeholder="Name it, e.g. Clothes or Pharmacy" value="'+esc(state.newName)+'" autocapitalize="words">'+
            '<button id="createcat">Add</button></div>';
     }
     h += '<input id="date" class="field" type="date" value="'+state.date+'">';
@@ -548,12 +607,15 @@
     var cat = state.auto ? p.cat : state.cat;
     if(!(p.amount > 0) || !p.name || !cat) return;
 
-    // If you picked the category yourself, remember the word for next time.
-    if(!state.auto && cat !== p.cat){
+    // If you picked the category yourself, remember every word in it for next time.
+    if(!state.auto){
+      var STOP = ["for","and","the","with","from","this","that","was","were","some","new","one","two",
+                  "aed","dhs","paid","bought","got","had"];
       var toks = clean(p.name).trim().split(" ").filter(function(w){
-        return w.length > 2 && ["for","and","the","with","from"].indexOf(w) === -1;
+        return w.length > 2 && STOP.indexOf(w) === -1 && !/^\d/.test(w);
       });
-      if(toks.length) db.rules[toks[0]] = cat;
+      toks.forEach(function(w){ db.rules[w] = cat; });
+      if(toks.length > 1) db.rules[toks.join(" ")] = cat;   // the whole name too
     }
 
     db.items.unshift({
