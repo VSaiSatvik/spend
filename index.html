@@ -572,5 +572,13 @@
   render();
 })();
 </script>
+<script>
+/* Keep a copy of the app on the phone for offline use. */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){ /* still works online */ });
+  });
+}
+</script>
 </body>
 </html>
