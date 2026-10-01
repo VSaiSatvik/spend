@@ -48,6 +48,59 @@
   .dot{width:7px;height:7px;border-radius:4px;flex-shrink:0;}
   .editcats{display:block;margin:14px auto 0;font-size:12px;color:var(--muted);text-decoration:underline;}
 
+  /* budget track: the composition bar sits inside the month's budget */
+  .track{position:relative;height:12px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:22px;}
+  .track .fill{position:absolute;inset:0 auto 0 0;display:flex;gap:2px;}
+  .track.over{background:var(--flag);}
+  .bline{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);}
+  .bline .left{color:var(--inkSoft);}
+  .bline .over{color:var(--flag);}
+  .setbudget{display:block;margin:20px auto 0;font-size:12px;color:var(--muted);text-decoration:underline;}
+
+  .toolrow{display:flex;gap:8px;margin-top:20px;}
+  .toolrow button{flex:1;padding:10px 4px;border-radius:11px;border:1px solid var(--line);
+    background:var(--card);font-size:12px;color:var(--inkSoft);}
+
+  /* charts */
+  .amtrow{display:flex;align-items:baseline;gap:10px;margin-bottom:22px;}
+  #bamt{flex:1;min-width:0;background:none;border:none;border-bottom:1px solid var(--line);
+    outline:none;font-family:var(--mono);font-size:38px;letter-spacing:-.02em;color:var(--ink);padding-bottom:7px;}
+  .donutwrap{position:relative;display:flex;justify-content:center;margin:4px 0 18px;}
+  .dcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    pointer-events:none;text-align:center;padding:0 46px;}
+  .dcenter .lab{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);
+    text-transform:uppercase;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dcenter .val{font-family:var(--mono);font-size:25px;letter-spacing:-.02em;margin-top:3px;}
+  .dcenter .sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;}
+  .lrow{display:flex;align-items:center;gap:9px;padding:9px 2px;border-bottom:1px solid var(--line);}
+  .lrow .nm{flex:1;font-size:14px;}
+  .lrow .pc{font-family:var(--mono);font-size:11px;color:var(--muted);width:40px;text-align:right;}
+  .lrow .am{font-family:var(--mono);font-size:14px;width:74px;text-align:right;}
+  .lrow.dim{opacity:.4;}
+  .stat{display:flex;gap:10px;margin:18px 0 4px;}
+  .stat > div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-width:0;}
+  .stat .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;}
+  .stat .v{font-family:var(--mono);font-size:17px;margin-top:5px;}
+  .sechead{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted);
+    margin:24px 2px 10px;text-transform:uppercase;}
+
+  /* search */
+  #q{width:100%;padding:14px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line);
+    font-size:16px;color:var(--ink);outline:none;}
+  .qsum{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 4px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);}
+  .qsum .t{font-size:15px;color:var(--ink);letter-spacing:0;}
+  .qrow{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid var(--line);}
+  .qmid{flex:1;min-width:0;}
+  .qn{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .qd{display:block;font-size:11px;color:var(--muted);margin-top:3px;}
+  .qa{font-family:var(--mono);font-size:15px;}
+  .seg{border-radius:0;}
+  .track .fill .seg:first-child{border-radius:6px 0 0 6px;}
+  .track .fill .seg:last-child{border-radius:0 6px 6px 0;}
+  .track .fill .seg:only-child{border-radius:6px;}
+
   .list{padding:0 20px 130px;}
   .daygrp{margin-bottom:20px;}
   .dayhead{display:flex;justify-content:space-between;padding:0 4px 8px;
@@ -112,15 +165,16 @@
 
   var KEY = "expenses:v1";
 
+  // Hues checked for colour-blind separation; grey is a reserved neutral for Other.
   var DEFAULT_CATS = [
-    {id:"grocery", label:"Groceries",    color:"#1F6F5C"},
-    {id:"food",    label:"Food",         color:"#E0912B"},
-    {id:"gift",    label:"Gifts",        color:"#B4553F"},
-    {id:"car",     label:"Car & travel", color:"#3C5A78"},
-    {id:"home",    label:"Home & bills", color:"#7A5A8C"},
+    {id:"grocery", label:"Groceries",    color:"#0E8266"},
+    {id:"food",    label:"Food",         color:"#C9821B"},
+    {id:"gift",    label:"Gifts",        color:"#B43B2E"},
+    {id:"car",     label:"Car & travel", color:"#3A6FD8"},
+    {id:"home",    label:"Home & bills", color:"#7B3F9E"},
     {id:"other",   label:"Other",        color:"#8B9A93"}
   ];
-  var PALETTE = ["#4E7A9B","#A0693F","#5E8C61","#8C5A7A","#3F7A78","#9B7B3F","#6E6A9B","#7D8C4F"];
+  var PALETTE = ["#1B6E8C","#A65B2E","#4E7F3E","#B0357A","#5B52B5","#8A6D14","#2F7F72","#96324F"];
 
   var MONTHS = ["January","February","March","April","May","June",
                 "July","August","September","October","November","December"];
@@ -241,7 +295,37 @@
   }
   if(!db.rules) db.rules = {};
   if(!db.cats || !db.cats.length) db.cats = DEFAULT_CATS.map(function(c){ return {id:c.id,label:c.label,color:c.color}; });
+  if(typeof db.budget === "undefined") db.budget = null;   // applies to every month
+  if(!db.budgets) db.budgets = {};                          // per-month overrides
+  // Re-step the built-in colours to the checked palette, keeping any you renamed.
+  if(db.palette !== 2){
+    DEFAULT_CATS.forEach(function(d){
+      db.cats.forEach(function(c){ if(c.id === d.id) c.color = d.color; });
+    });
+    db.palette = 2;
+  }
   write(db);
+
+  function budgetFor(key){
+    if(db.budgets && typeof db.budgets[key] === "number") return db.budgets[key];
+    return (typeof db.budget === "number") ? db.budget : null;
+  }
+  function totalFor(key){
+    return db.items.reduce(function(s,e){
+      return e.date.slice(0,7) === key ? s + e.amount : s;
+    }, 0);
+  }
+  function monthsBack(n, endY, endM){
+    var out = [];
+    for(var i = n-1; i >= 0; i--){
+      var d = new Date(endY, endM - i, 1);
+      out.push({y:d.getFullYear(), m:d.getMonth(),
+                key:mkey(d.getFullYear(), d.getMonth()),
+                label:MONTHS[d.getMonth()].slice(0,3)});
+    }
+    out.forEach(function(x){ x.total = totalFor(x.key); });
+    return out;
+  }
 
   function catOf(id){
     for(var i=0;i<db.cats.length;i++){ if(db.cats[i].id===id) return db.cats[i]; }
@@ -313,7 +397,10 @@
     filter: null, openRow: null,
     sheet: false, catSheet: false,
     text: "", cat: null, auto: true, date: iso(today),
-    adding: false, newName: ""
+    adding: false, newName: "",
+    insights: false, pick: null,
+    search: false, q: "",
+    budgetSheet: false, bAmt: "", bScope: "all"
   };
 
   function save(){ if(!write(db)) render(); }
@@ -345,13 +432,31 @@
     h +=   '<div class="totalrow"><span class="cur">AED</span><span class="big">'+parts[0]+'</span><span class="fils">.'+parts[1]+'</span></div>';
     h +=   '<div class="count">'+items.length+' '+(items.length===1?"ENTRY":"ENTRIES")+'</div>';
 
+    // One bar doing two jobs: the category split, drawn inside the month's budget.
+    var bud = budgetFor(key);
+    var over = bud ? total > bud : false;
     if(byCat.length){
-      h += '<div class="bar">';
+      var scale = bud ? Math.min(total / bud, 1) : 1;
+      h += '<div class="track'+(over?' over':'')+'"><div class="fill" style="width:'+(scale*100)+'%">';
       byCat.forEach(function(c){
         var dim = state.filter && state.filter !== c.id ? ";opacity:.25" : "";
         h += '<button class="seg" data-cat="'+c.id+'" aria-label="'+esc(c.label)+'" style="width:'+((c.total/total)*100)+'%;background:'+c.color+dim+'"></button>';
       });
-      h += '</div><div class="chips">';
+      h += '</div></div>';
+    }
+    if(bud){
+      h += '<div class="bline">';
+      if(over){
+        h += '<span class="over">AED '+(total-bud).toFixed(2)+' over</span>';
+        h += '<span>budget '+bud.toFixed(2)+'</span>';
+      } else {
+        h += '<span class="left">AED '+(bud-total).toFixed(2)+' left</span>';
+        h += '<span>of '+bud.toFixed(2)+'</span>';
+      }
+      h += '</div>';
+    }
+    if(byCat.length){
+      h += '<div class="chips">';
       byCat.forEach(function(c){
         h += '<button class="chip'+(state.filter===c.id?' on':'')+'" data-cat="'+c.id+'">'+
              '<span class="dot" style="background:'+c.color+'"></span>'+esc(c.label)+
@@ -359,7 +464,12 @@
       });
       h += '</div>';
     }
-    h += '<button class="editcats" id="editcats">Edit categories</button>';
+    h += '<div class="toolrow">'+
+         '<button id="osearch">Search</button>'+
+         '<button id="oinsights">Insights</button>'+
+         '<button id="obudget">Budget</button>'+
+         '<button id="editcats">Categories</button>'+
+         '</div>';
     h += '</div>';
 
     if(!storageOk){
@@ -398,6 +508,9 @@
 
     if(state.sheet) h += sheetHTML();
     if(state.catSheet) h += catSheetHTML();
+    if(state.insights) h += insightsHTML();
+    if(state.search) h += searchHTML();
+    if(state.budgetSheet) h += budgetHTML();
 
     document.getElementById("app").innerHTML = h;
     wire();
@@ -434,6 +547,213 @@
     }
     h += '<input id="date" class="field" type="date" value="'+state.date+'">';
     h += '<button class="savebtn" id="savebtn"'+(ok?"":" disabled")+'>Save expense</button>';
+    h += '</div></div>';
+    return h;
+  }
+
+  // ---- charts ------------------------------------------------------------
+  // Ring of category arcs, 2px surface gaps, tap a slice to read it off.
+  function donut(rows, total){
+    var SZ = 184, R = 70, SW = 23, C = SZ/2, circ = 2*Math.PI*R, off = 0;
+    var h = '<svg viewBox="0 0 '+SZ+' '+SZ+'" width="'+SZ+'" height="'+SZ+'" role="img" aria-label="Spending by category">';
+    h += '<circle cx="'+C+'" cy="'+C+'" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="'+SW+'"/>';
+    rows.forEach(function(x){
+      var len = circ * (x.total/total);
+      var seg = Math.max(len - 2, 1.5);          // 2px surface gap between fills
+      var dim = state.pick && state.pick !== x.id;
+      h += '<circle class="arc" data-arc="'+x.id+'" cx="'+C+'" cy="'+C+'" r="'+R+'" fill="none" '+
+           'stroke="'+x.color+'" stroke-width="'+SW+'" stroke-linecap="butt" '+
+           'stroke-dasharray="'+seg.toFixed(2)+' '+(circ-seg).toFixed(2)+'" '+
+           'stroke-dashoffset="'+(-off).toFixed(2)+'" '+
+           'transform="rotate(-90 '+C+' '+C+')" '+
+           'style="cursor:pointer'+(dim?';opacity:.28':'')+'"></circle>';
+      off += len;
+    });
+    h += '</svg>';
+    return h;
+  }
+
+  // Six months of totals. Budget drawn as a dashed rule so you can see the line.
+  function trend(ms, bud){
+    var W = 320, H = 132, L = 4, R = 4, TOP = 20, BASE = H - 20;
+    var vals = ms.map(function(m){ return m.total; });
+    var peak = Math.max.apply(null, vals.concat(bud ? [bud] : []).concat([1]));
+    var span = (W - L - R) / ms.length;
+    var bw = Math.min(span - 10, 38);
+    var h = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Monthly totals" '+
+            'style="width:100%;height:auto;display:block;overflow:visible">';
+    h += '<line x1="0" y1="'+BASE+'" x2="'+W+'" y2="'+BASE+'" stroke="var(--line)" stroke-width="1"/>';
+    if(bud){
+      var by = TOP + (BASE-TOP) * (1 - bud/peak);
+      h += '<line x1="0" y1="'+by.toFixed(1)+'" x2="'+W+'" y2="'+by.toFixed(1)+'" stroke="var(--muted)" '+
+           'stroke-width="1" stroke-dasharray="3 3"/>';
+    }
+    ms.forEach(function(m,i){
+      var cx = L + span*i + span/2;
+      var bh = Math.max((BASE-TOP) * (m.total/peak), m.total > 0 ? 3 : 0);
+      var y = BASE - bh;
+      var cur = (m.y === state.y && m.m === state.m);
+      var col = bud && m.total > bud ? "var(--flag)" : (cur ? "var(--ink)" : "var(--muted)");
+      if(bh > 0){
+        h += '<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" '+
+             'rx="4" fill="'+col+'" opacity="'+(cur?1:0.55)+'"/>';
+      }
+      h += '<text x="'+cx.toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="middle" '+
+           'font-size="10" font-family="ui-monospace,Menlo,monospace" fill="var(--muted)" '+
+           'stroke="var(--paper)" stroke-width="3" paint-order="stroke">'+
+           (m.total ? Math.round(m.total) : '')+'</text>';
+      h += '<text x="'+cx.toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" '+
+           'font-size="10" font-family="ui-monospace,Menlo,monospace" fill="var(--muted)" '+
+           'opacity="'+(cur?1:0.7)+'">'+m.label+'</text>';
+    });
+    h += '</svg>';
+    return h;
+  }
+
+  function insightsHTML(){
+    var key = mkey(state.y, state.m);
+    var items = db.items.filter(function(e){ return e.date.slice(0,7) === key; });
+    var total = items.reduce(function(s,e){ return s+e.amount; }, 0);
+    var sums = {};
+    items.forEach(function(e){ sums[e.category] = (sums[e.category]||0) + e.amount; });
+    var rows = db.cats.map(function(c){ return {id:c.id,label:c.label,color:c.color,total:sums[c.id]||0}; })
+                      .filter(function(c){ return c.total > 0; })
+                      .sort(function(a,b){ return b.total - a.total; });
+    var bud = budgetFor(key);
+    var ms = monthsBack(6, state.y, state.m);
+
+    var h = '<div class="scrim" id="inscrim"><div class="sheet">';
+    h += '<div class="sheethead"><span class="sheettitle">'+MONTHS[state.m].toUpperCase()+' '+state.y+'</span>'+
+         '<button class="cancel" id="inclose">Done</button></div>';
+
+    if(!total){
+      h += '<div class="hint" style="margin-top:0">Nothing logged this month yet, so there is nothing to chart.</div>';
+      h += '</div></div>';
+      return h;
+    }
+
+    var sel = state.pick ? rows.filter(function(r){ return r.id === state.pick; })[0] : null;
+    h += '<div class="donutwrap">'+donut(rows, total)+
+         '<div class="dcenter">'+
+           '<div class="lab">'+(sel ? esc(sel.label) : 'Total')+'</div>'+
+           '<div class="val">'+(sel ? sel.total : total).toFixed(2)+'</div>'+
+           '<div class="sub">'+(sel ? Math.round(sel.total/total*100)+'% of month'
+                                    : items.length+(items.length===1?' entry':' entries'))+'</div>'+
+         '</div></div>';
+
+    rows.forEach(function(r){
+      var dim = state.pick && state.pick !== r.id ? ' dim' : '';
+      h += '<button class="lrow'+dim+'" data-arc="'+r.id+'" style="width:100%;text-align:left">'+
+           '<span class="dot" style="background:'+r.color+'"></span>'+
+           '<span class="nm">'+esc(r.label)+'</span>'+
+           '<span class="pc">'+Math.round(r.total/total*100)+'%</span>'+
+           '<span class="am">'+r.total.toFixed(2)+'</span></button>';
+    });
+
+    // A few numbers worth knowing, stated rather than plotted.
+    var top = rows[0];
+    var big = items.slice().sort(function(a,b){ return b.amount-a.amount; })[0];
+    var now = new Date();
+    var dim2 = new Date(state.y, state.m+1, 0).getDate();
+    var isCur = (now.getFullYear() === state.y && now.getMonth() === state.m);
+    var daysLeft = isCur ? (dim2 - now.getDate() + 1) : 0;
+    h += '<div class="stat">'+
+         '<div><div class="k">Entries</div><div class="v">'+items.length+'</div></div>'+
+         '<div><div class="k">Biggest</div><div class="v">'+big.amount.toFixed(0)+'</div></div>'+
+         '<div><div class="k">Top</div><div class="v" style="font-size:13px">'+esc(top.label)+'</div></div>'+
+         '</div>';
+
+    if(bud){
+      var msg;
+      if(total > bud){
+        msg = 'You are AED '+(total-bud).toFixed(2)+' over your '+bud.toFixed(0)+' budget.';
+      } else if(isCur && daysLeft > 0){
+        msg = 'AED '+(bud-total).toFixed(2)+' left with '+daysLeft+' day'+(daysLeft===1?'':'s')+
+              ' to go &mdash; about '+((bud-total)/daysLeft).toFixed(0)+' a day.';
+      } else {
+        msg = 'AED '+(bud-total).toFixed(2)+' under the '+bud.toFixed(0)+' budget.';
+      }
+      h += '<div class="hint" style="margin-top:14px">'+msg+'</div>';
+    }
+
+    h += '<div class="sechead">Last 6 months</div>';
+    h += trend(ms, bud);
+    var past = ms.filter(function(m){ return m.total > 0; });
+    if(past.length > 1){
+      var avg = past.reduce(function(s,m){ return s+m.total; },0) / past.length;
+      h += '<div class="hint" style="margin-top:10px">Average over the months you have logged: AED '+avg.toFixed(2)+
+           (bud ? ' &middot; dashed line is your budget.' : '.')+'</div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  function searchHTML(){
+    var q = state.q.trim().toLowerCase();
+    var hits = [];
+    if(q){
+      hits = db.items.filter(function(e){
+        if(e.name.toLowerCase().indexOf(q) > -1) return true;
+        var c = catOf(e.category);
+        if(c.label.toLowerCase().indexOf(q) > -1) return true;
+        if(String(e.amount).indexOf(q) === 0) return true;
+        return false;
+      }).sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+    }
+    var sum = hits.reduce(function(s,e){ return s+e.amount; }, 0);
+
+    var h = '<div class="scrim" id="qscrim"><div class="sheet">';
+    h += '<div class="sheethead"><span class="sheettitle">SEARCH</span>'+
+         '<button class="cancel" id="qclose">Done</button></div>';
+    h += '<input id="q" placeholder="Carrefour, gift, groceries…" value="'+esc(state.q)+'" '+
+         'autocomplete="off" autocapitalize="none" spellcheck="false">';
+    h += '<div class="hint">Looks across every month — by what you called it, its category, or the amount.</div>';
+
+    if(q && !hits.length){
+      h += '<div class="hint" style="margin-top:0">Nothing matches &ldquo;'+esc(state.q)+'&rdquo;.</div>';
+    } else if(hits.length){
+      h += '<div class="qsum"><span class="t">'+hits.length+' '+(hits.length===1?'expense':'expenses')+'</span>'+
+           '<span>AED '+sum.toFixed(2)+'</span></div>';
+      hits.slice(0,80).forEach(function(e){
+        var c = catOf(e.category);
+        var p = e.date.split("-");
+        h += '<div class="qrow"><span class="dot" style="background:'+c.color+'"></span>'+
+             '<span class="qmid"><span class="qn">'+esc(e.name)+'</span>'+
+             '<span class="qd">'+esc(c.label)+' &middot; '+(+p[2])+' '+MONTHS[+p[1]-1].slice(0,3)+' '+p[0]+'</span></span>'+
+             '<span class="qa">'+e.amount.toFixed(2)+'</span></div>';
+      });
+      if(hits.length > 80) h += '<div class="hint">Showing the first 80.</div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  function budgetHTML(){
+    var key = mkey(state.y, state.m);
+    var cur = budgetFor(key);
+    var spent = totalFor(key);
+    var amt = parseFloat(state.bAmt);
+    var ok = amt > 0;
+
+    var h = '<div class="scrim" id="bscrim"><div class="sheet">';
+    h += '<div class="sheethead"><span class="sheettitle">MONTHLY BUDGET</span>'+
+         '<button class="cancel" id="bclose">Cancel</button></div>';
+    h += '<div class="amtrow"><span class="cur">AED</span>'+
+         '<input id="bamt" inputmode="decimal" placeholder="'+(cur ? cur.toFixed(0) : '2000')+'" value="'+esc(state.bAmt)+'"></div>';
+    h += '<div class="eyebrow">APPLY IT TO</div>';
+    h += '<div class="chips" style="margin-top:0;margin-bottom:16px">'+
+         '<button class="chip'+(state.bScope==="all"?' on':'')+'" data-scope="all" style="padding:7px 11px;font-size:13px">Every month</button>'+
+         '<button class="chip'+(state.bScope==="one"?' on':'')+'" data-scope="one" style="padding:7px 11px;font-size:13px">Only '+MONTHS[state.m]+'</button>'+
+         '</div>';
+    h += '<button class="savebtn" id="bsave"'+(ok?'':' disabled')+'>Save budget</button>';
+
+    if(cur){
+      h += '<div class="hint" style="margin-top:16px">Right now: AED '+spent.toFixed(2)+' of '+cur.toFixed(2)+
+           ' &mdash; '+(spent>cur ? (spent-cur).toFixed(2)+' over.' : (cur-spent).toFixed(2)+' left.')+'</div>';
+      h += '<button class="setbudget" id="bclear">Remove the budget</button>';
+    } else {
+      h += '<div class="hint" style="margin-top:16px">Set one and the bar on the main screen fills up as you spend, so you can see what is left at a glance.</div>';
+    }
     h += '</div></div>';
     return h;
   }
@@ -536,6 +856,79 @@
     var ec = document.getElementById("editcats");
     if(ec) ec.onclick = function(){ state.catSheet = true; render(); };
 
+    // ---- insights
+    var oi = document.getElementById("oinsights");
+    if(oi) oi.onclick = function(){ state.insights = true; state.pick = null; render(); };
+    var ic = document.getElementById("inclose");
+    if(ic) ic.onclick = function(){ state.insights = false; state.pick = null; render(); };
+    var isc = document.getElementById("inscrim");
+    if(isc) isc.onclick = function(ev){
+      if(ev.target === isc){ state.insights = false; state.pick = null; render(); }
+    };
+    document.querySelectorAll("[data-arc]").forEach(function(el){
+      el.onclick = function(){
+        state.pick = state.pick === el.getAttribute("data-arc") ? null : el.getAttribute("data-arc");
+        render();
+      };
+    });
+
+    // ---- search
+    var os = document.getElementById("osearch");
+    if(os) os.onclick = function(){
+      state.search = true; state.q = ""; render();
+      var el = document.getElementById("q"); if(el) el.focus();
+    };
+    var qc = document.getElementById("qclose");
+    if(qc) qc.onclick = function(){ state.search = false; render(); };
+    var qsc = document.getElementById("qscrim");
+    if(qsc) qsc.onclick = function(ev){ if(ev.target === qsc){ state.search = false; render(); } };
+    var qi = document.getElementById("q");
+    if(qi){
+      qi.oninput = function(){
+        var pos = this.selectionStart;
+        state.q = this.value;
+        render();
+        var again = document.getElementById("q");
+        if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(e){} }
+      };
+    }
+
+    // ---- budget
+    var ob = document.getElementById("obudget");
+    if(ob) ob.onclick = function(){
+      var cur = budgetFor(mkey(state.y, state.m));
+      state.bAmt = cur ? String(cur) : "";
+      state.bScope = (db.budgets && typeof db.budgets[mkey(state.y,state.m)] === "number") ? "one" : "all";
+      state.budgetSheet = true; render();
+      var el = document.getElementById("bamt"); if(el) el.focus();
+    };
+    var bc = document.getElementById("bclose");
+    if(bc) bc.onclick = function(){ state.budgetSheet = false; render(); };
+    var bsc = document.getElementById("bscrim");
+    if(bsc) bsc.onclick = function(ev){ if(ev.target === bsc){ state.budgetSheet = false; render(); } };
+    var ba = document.getElementById("bamt");
+    if(ba){
+      ba.oninput = function(){
+        this.value = this.value.replace(/[^0-9.]/g, "");
+        state.bAmt = this.value;
+        var b = document.getElementById("bsave");
+        if(b) b.disabled = !(parseFloat(this.value) > 0);
+      };
+      ba.onkeydown = function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); saveBudget(); } };
+    }
+    document.querySelectorAll("[data-scope]").forEach(function(b){
+      b.onclick = function(){ state.bScope = b.getAttribute("data-scope"); render(); };
+    });
+    var bs = document.getElementById("bsave");
+    if(bs) bs.onclick = saveBudget;
+    var bclr = document.getElementById("bclear");
+    if(bclr) bclr.onclick = function(){
+      var k = mkey(state.y, state.m);
+      if(db.budgets) delete db.budgets[k];
+      db.budget = null;
+      state.budgetSheet = false; save(); render();
+    };
+
     var cancel = document.getElementById("cancel");
     if(cancel) cancel.onclick = function(){ state.sheet = false; render(); };
     var scrim = document.getElementById("scrim");
@@ -596,6 +989,21 @@
     }
     if(cc2) cc2.onclick = doCreate2;
     if(nn2) nn2.onkeydown = function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); doCreate2(); } };
+  }
+
+  function saveBudget(){
+    var amt = parseFloat(state.bAmt);
+    if(!(amt > 0)) return;
+    amt = Math.round(amt * 100) / 100;
+    var k = mkey(state.y, state.m);
+    if(state.bScope === "one"){
+      db.budgets[k] = amt;
+    } else {
+      db.budget = amt;
+      delete db.budgets[k];
+    }
+    state.budgetSheet = false;
+    save(); render();
   }
 
   function doCreate(){
